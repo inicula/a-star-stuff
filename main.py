@@ -3,7 +3,7 @@ import copy
 import stopit
 from random import randrange
 
-usage = "usage: python3 main.py [--file <filename>] [--method <search_method>] [--timeout <timeout_value>]"
+usage = "usage: python3 main.py --file <filename> [--method <search_method>] [--timeout <timeout_value>]"
 
 src_data = [];
 dest_data = [];
@@ -176,13 +176,13 @@ def main(argv):
         argc = len(argv);
 
         if argc < 2:
-                print("Error: argc < 2");
+                print("Error: not enough cli arguments.")
+                print(usage);
                 exit(1);
 
         filename    = "";
         method_arg  = "";
         timeout_sec = 5;
-
         try:
                 for i in range(1, argc):
                         if argv[i] == "--method":
@@ -232,7 +232,6 @@ def main(argv):
         };
 
         method = None;
-
         try:
                 method = handlers[method_arg];
 
