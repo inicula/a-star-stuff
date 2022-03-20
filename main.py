@@ -5,6 +5,8 @@ from random import randrange
 
 usage = "usage: python3 main.py --file <filename> [--method <search_method>] [--timeout <timeout_value>]"
 
+max_sols = int(1e9);
+sols_found = 0;
 src_data = [];
 dest_data = [];
 found = False
@@ -97,6 +99,9 @@ class Node:
 
 @stopit.threading_timeoutable(default = "1")
 def bfs():
+        global sols_found;
+        sols_found = 0;
+
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
@@ -107,6 +112,11 @@ def bfs():
 
                 if u == dest:
                         print_path(path_u, "[ PATH ]");
+
+                        sols_found += 1;
+                        if sols_found == max_sols:
+                                break;
+
                         continue;
 
                 for v in u.neighbours():
@@ -121,6 +131,9 @@ def bfs():
 
 @stopit.threading_timeoutable(default = "1")
 def dfs():
+        global sols_found;
+        sols_found = 0;
+
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
@@ -128,10 +141,16 @@ def dfs():
         return "0";
 
 def dfs_impl(path_so_far, dest):
+        global sols_found;
+
+        if sols_found == max_sols:
+                return;
+
         u = path_so_far[len(path_so_far) - 1];
 
         if u == dest:
                 print_path(path_so_far, "[ PATH ]")
+                sols_found += 1;
                 return;
 
         for v in u.neighbours():
@@ -145,6 +164,9 @@ def dfs_impl(path_so_far, dest):
 
 @stopit.threading_timeoutable(default = "1")
 def dfs_iterative():
+        global sols_found;
+        sols_found = 0;
+
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
@@ -155,6 +177,11 @@ def dfs_iterative():
 
                 if u == dest:
                         print_path(path_u, "[ PATH ]");
+
+                        sols_found += 1;
+                        if sols_found == max_sols:
+                                break;
+
                         continue;
 
                 for v in u.neighbours():
@@ -172,6 +199,7 @@ def main(argv):
         global src_data;
         global dest_data;
         global found;
+        global max_sols;
 
         argc = len(argv);
 
@@ -182,7 +210,7 @@ def main(argv):
 
         filename    = "";
         method_arg  = "";
-        timeout_sec = 5;
+        timeout_sec = 60;
         try:
                 for i in range(1, argc):
                         if argv[i] == "--method":
@@ -195,6 +223,10 @@ def main(argv):
 
                         if argv[i] == "--file":
                                 filename = argv[i + 1];
+                                i += 1;
+
+                        if argv[i] == "--stop-after":
+                                max_sols = int(argv[i + 1]);
                                 i += 1;
 
                 if filename == "":
