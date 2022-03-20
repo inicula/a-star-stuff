@@ -197,6 +197,7 @@ def main(argv):
         global dest_data;
         global max_sols;
         global sols_found;
+        global begin_time;
 
         argc = len(argv);
 
@@ -260,16 +261,14 @@ def main(argv):
                 "dfs_iterative" : dfs_iterative
         };
 
-        method = None;
-        try:
+        method = dfs;
+        if method_arg in handlers:
                 method = handlers[method_arg];
-
-        except:
+        else:
                 printerr(
                     "Method '{}' not found. Picking depth-first search as default.\n".
                     format(method_arg)
                 );
-                method = dfs;
 
         # call the chosen search method
         sols_found = 0;
@@ -278,7 +277,6 @@ def main(argv):
 
         if res == "1":
                 print("The search algorithm was timed out.");
-                return;
 
         if sols_found == 0:
                 print("No path from source to destination was found.");
