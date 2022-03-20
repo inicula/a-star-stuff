@@ -102,6 +102,28 @@ def bfs():
                         new_path.append(v);
                         q.append(new_path);
 
+def dfs_iterative():
+        src  = Node(None, src_data);
+        dest = Node(None, dest_data);
+
+        stack = [[src]];
+        while len(stack) > 0:
+                path_u = stack.pop();
+                u = path_u[len(path_u) - 1];
+
+                if u == dest:
+                        print("===== PATH =====");
+                        for i, node in enumerate(path_u):
+                                print("{})\n{}\n".format(i+1, node));
+
+                for v in u.neighbours():
+                        if v in path_u:
+                            continue;
+
+                        new_path = copy.deepcopy(path_u);
+                        new_path.append(v);
+                        stack.append(new_path);
+
 
 def main(argv):
         if len(argv) != 2:
@@ -129,7 +151,7 @@ def main(argv):
         for j in range(i, len(lines)):
                 dest_data.append(lines[j]);
 
-        bfs();
+        dfs_iterative();
 
 
 if __name__ == "__main__":
