@@ -2,6 +2,7 @@ import sys
 import copy
 from random import randrange
 
+# utils
 
 def get_bitfields(n):
         res = [];
@@ -22,6 +23,13 @@ def get_bitfields(n):
 def popcount(x):
         return bin(x).count("1");
 
+def print_path(path, prefix = None):
+        if prefix is not None:
+                print(prefix);
+
+        for i, node in enumerate(path):
+                print("{})\n{}\n".format(i + 1, node));
+# utils
 
 src_data = [];
 dest_data = [];
@@ -90,9 +98,8 @@ def bfs():
                 u = path_u[len(path_u) - 1];
 
                 if u == dest:
-                        print("===== PATH =====");
-                        for i, node in enumerate(path_u):
-                                print("{})\n{}\n".format(i+1, node));
+                        print_path(path_u, "[ PATH ]");
+                        continue;
 
                 for v in u.neighbours():
                         if v in path_u:
@@ -112,9 +119,8 @@ def dfs_iterative():
                 u = path_u[len(path_u) - 1];
 
                 if u == dest:
-                        print("===== PATH =====");
-                        for i, node in enumerate(path_u):
-                                print("{})\n{}\n".format(i+1, node));
+                        print_path(path_u, "[ PATH ]");
+                        continue;
 
                 for v in u.neighbours():
                         if v in path_u:
