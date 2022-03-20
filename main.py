@@ -142,9 +142,6 @@ def main(argv):
         lines = [line[:-1] for line in lines];
         file.close();
 
-        global src;
-        global dest;
-
         i = 0;
         for _ in range(0, len(lines)):
                 if lines[i] == "":
