@@ -36,6 +36,9 @@ def print_path(path, prefix = None):
 
         for i, node in enumerate(path):
                 print("{})\n{}\n".format(i + 1, node));
+
+def printerr(*args):
+        print(*args, file = sys.stderr);
 # utils
 
 class Node:
@@ -193,8 +196,8 @@ def main(argv):
         argc = len(argv);
 
         if argc < 2:
-                print("Error: not enough cli arguments.")
-                print(usage);
+                printerr("Error: not enough cli arguments.")
+                printerr(usage);
                 exit(1);
 
         filename    = "";
@@ -222,8 +225,8 @@ def main(argv):
                         raise Exception('');
 
         except:
-                print("Erorr in cli args.");
-                print(usage);
+                printerr("Erorr in cli args.");
+                printerr(usage);
                 exit(1);
 
         # read file into string
@@ -257,10 +260,9 @@ def main(argv):
                 method = handlers[method_arg];
 
         except:
-                print(
+                printerr(
                     "Method '{}' not found. Picking depth-first search as default.\n".
-                    format(method_arg),
-                    file = sys.stderr
+                    format(method_arg)
                 );
                 method = dfs;
 
@@ -268,11 +270,11 @@ def main(argv):
         res = method(timeout = timeout_sec);
 
         if res == "1":
-                print("The search algorithm was timed out.");
+                printerr("The search algorithm was timed out.");
                 return;
 
         if sols_found == 0:
-                print("No path from source to destination was found.");
+                printerr("No path from source to destination was found.");
 
 
 if __name__ == "__main__":
