@@ -1,6 +1,9 @@
 import sys
 import copy
+import stopit
 from random import randrange
+
+usage = "usage: python3 main.py [--file <filename>] [--method <search_method>] [--timeout <timeout_value>]"
 
 src_data = [];
 dest_data = [];
@@ -92,6 +95,7 @@ class Node:
                 return res;
 
 
+@stopit.threading_timeoutable(default = "1")
 def bfs():
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
@@ -113,11 +117,15 @@ def bfs():
                         new_path.append(v);
                         q.append(new_path);
 
+        return "0";
+
+@stopit.threading_timeoutable(default = "1")
 def dfs():
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
         dfs_impl([src], dest);
+        return "0";
 
 def dfs_impl(path_so_far, dest):
         u = path_so_far[len(path_so_far) - 1];
@@ -135,6 +143,7 @@ def dfs_impl(path_so_far, dest):
                 path_so_far.pop();
 
 
+@stopit.threading_timeoutable(default = "1")
 def dfs_iterative():
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
@@ -156,18 +165,47 @@ def dfs_iterative():
                         new_path.append(v);
                         stack.append(new_path);
 
+        return "0";
+
 
 def main(argv):
-        if len(argv) < 2:
-                print("Error: argc < 2");
-                exit(1);
-
         global src_data;
         global dest_data;
         global found;
 
+        argc = len(argv);
+
+        if argc < 2:
+                print("Error: argc < 2");
+                exit(1);
+
+        filename    = "";
+        method_arg  = "";
+        timeout_sec = 5;
+
+        try:
+                for i in range(1, argc):
+                        if argv[i] == "--method":
+                                method_arg = argv[i + 1];
+                                i += 1;
+
+                        if argv[i] == "--timeout":
+                                timeout_sec = float(argv[i + 1]);
+                                i += 1;
+
+                        if argv[i] == "--file":
+                                filename = argv[i + 1];
+                                i += 1;
+
+                if filename == "":
+                        raise Exception('');
+
+        except:
+                print("Erorr in cli args.");
+                print(usage);
+                exit(1);
+
         # read file into string
-        filename = argv[1];
         file = open(filename, "r");
         lines = file.readlines();
         lines = [line[:-1] for line in lines];
@@ -196,15 +234,25 @@ def main(argv):
         method = None;
 
         try:
-                method = handlers[argv[2]];
+                method = handlers[method_arg];
+
         except:
-                method = dfs_iterative;
+                print(
+                    "Method '{}' not found. Picking depth-first search as default.\n".
+                    format(method_arg),
+                    file = sys.stderr
+                );
+                method = dfs;
 
         # call the chosen search method
-        method();
+        res = method(timeout = timeout_sec);
+
+        if res == "1":
+                print("The search algorithm was timed out.");
+                return;
 
         if not found:
-                print("No path from source to destination was found");
+                print("No path from source to destination was found.");
 
 
 if __name__ == "__main__":
