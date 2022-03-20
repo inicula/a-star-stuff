@@ -4,12 +4,12 @@ import stopit
 from random import randrange
 
 # global variables
-usage = ("usage: python3 main.py --file <filename> [--method <search_method>] "
-         "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]");
-max_sols = int(1e9);
+max_sols   = int(1e9);
 sols_found = 0;
-src_data = [];
-dest_data = [];
+src_data   = [];
+dest_data  = [];
+usage      = ("usage: python3 main.py --file <filename> [--method <search_method>] "
+              "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]");
 # global variables
 
 # utils
