@@ -1,9 +1,11 @@
 import sys
 import copy
 import stopit
+import time
 from random import randrange
 
 # global variables
+begin_time = time.time();
 max_sols   = int(1e9);
 sols_found = 0;
 src_data   = [];
@@ -33,11 +35,16 @@ def popcount(x):
         return bin(x).count("1");
 
 def print_path(path, prefix = None):
+        now = time.time();
+        dur = now - begin_time;
+
         if prefix is not None:
                 print(prefix);
 
         for i, node in enumerate(path):
                 print("{})\n{}\n".format(i + 1, node));
+
+        print("Solution found after {} seconds\n".format(dur));
 
 def printerr(*args):
         print(*args, file = sys.stderr);
@@ -88,7 +95,7 @@ class Node:
                         new_data = [];
 
                         for i in remaining:
-                                new_data.append(self.data[i]);
+                                new_data.append(copy.deepcopy(self.data[i]));
 
                         res.append(Node(None, new_data));
 
@@ -97,7 +104,6 @@ class Node:
 @stopit.threading_timeoutable(default = "1")
 def bfs():
         global sols_found;
-        sols_found = 0;
 
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
@@ -128,9 +134,6 @@ def bfs():
 
 @stopit.threading_timeoutable(default = "1")
 def dfs():
-        global sols_found;
-        sols_found = 0;
-
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
@@ -161,7 +164,6 @@ def dfs_impl(path_so_far, dest):
 @stopit.threading_timeoutable(default = "1")
 def dfs_iterative():
         global sols_found;
-        sols_found = 0;
 
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
@@ -194,6 +196,7 @@ def main(argv):
         global src_data;
         global dest_data;
         global max_sols;
+        global sols_found;
 
         argc = len(argv);
 
@@ -207,19 +210,19 @@ def main(argv):
         timeout_sec = 60;
         try:
                 for i in range(1, argc):
-                        if argv[i] == "--method":
+                        if argv[i] == "--method" or argv[i] == "-m":
                                 method_arg = argv[i + 1];
                                 i += 1;
 
-                        if argv[i] == "--timeout":
+                        if argv[i] == "--timeout" or argv[i] == "-t":
                                 timeout_sec = float(argv[i + 1]);
                                 i += 1;
 
-                        if argv[i] == "--file":
+                        if argv[i] == "--file" or argv[i] == "-f":
                                 filename = argv[i + 1];
                                 i += 1;
 
-                        if argv[i] == "--stop-after":
+                        if argv[i] == "--stop-after" == "-s":
                                 max_sols = int(argv[i + 1]);
                                 i += 1;
 
@@ -269,6 +272,8 @@ def main(argv):
                 method = dfs;
 
         # call the chosen search method
+        sols_found = 0;
+        begin_time = time.time();
         res = method(timeout = timeout_sec);
 
         if res == "1":
