@@ -270,11 +270,11 @@ def main(argv):
         res = method(timeout = timeout_sec);
 
         if res == "1":
-                printerr("The search algorithm was timed out.");
+                print("The search algorithm was timed out.");
                 return;
 
         if sols_found == 0:
-                printerr("No path from source to destination was found.");
+                print("No path from source to destination was found.");
 
 
 if __name__ == "__main__":
