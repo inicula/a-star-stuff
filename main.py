@@ -19,6 +19,9 @@ def get_bitfields(n):
 
         return res
 
+def popcount(x):
+    return bin(x).count("1")
+
 
 src_data = []
 dest_data = []
