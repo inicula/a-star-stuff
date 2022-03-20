@@ -11,7 +11,6 @@ src_data = [];
 dest_data = [];
 
 # utils
-
 def get_bitfields(n):
         res = [];
 
@@ -37,9 +36,7 @@ def print_path(path, prefix = None):
 
         for i, node in enumerate(path):
                 print("{})\n{}\n".format(i + 1, node));
-
 # utils
-
 
 class Node:
         def __init__(self, id, data):
@@ -91,7 +88,6 @@ class Node:
                         res.append(Node(None, new_data));
 
                 return res;
-
 
 @stopit.threading_timeoutable(default = "1")
 def bfs():
@@ -157,7 +153,6 @@ def dfs_impl(path_so_far, dest):
                 dfs_impl(path_so_far, dest);
                 path_so_far.pop();
 
-
 @stopit.threading_timeoutable(default = "1")
 def dfs_iterative():
         global sols_found;
@@ -189,7 +184,6 @@ def dfs_iterative():
                         stack.append(new_path);
 
         return "0";
-
 
 def main(argv):
         global src_data;
