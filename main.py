@@ -20,7 +20,7 @@ def get_bitfields(n):
         return res
 
 def popcount(x):
-    return bin(x).count("1")
+        return bin(x).count("1")
 
 
 src_data = []
