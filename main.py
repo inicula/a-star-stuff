@@ -90,9 +90,9 @@ def bfs():
                 u = path_u[len(path_u) - 1]
 
                 if u == dest:
-                        for node in path_u:
-                                print(node, '\n')
-                        break
+                        print("===== PATH =====")
+                        for i, node in enumerate(path_u):
+                                print("{})\n{}\n".format(i+1, node))
 
                 for v in u.neighbours():
                         if v in path_u:
