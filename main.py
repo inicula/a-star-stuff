@@ -3,7 +3,7 @@ import copy
 import stopit
 from random import randrange
 
-usage = "usage: python3 main.py --file <filename> [--method <search_method>] [--timeout <timeout_value>]"
+usage = "usage: python3 main.py --file <filename> [--method <search_method>] [--timeout <timeout_value>] [--stop-after <number_of_solutions>]"
 
 max_sols = int(1e9);
 sols_found = 0;
