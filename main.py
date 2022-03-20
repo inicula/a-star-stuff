@@ -9,7 +9,6 @@ max_sols = int(1e9);
 sols_found = 0;
 src_data = [];
 dest_data = [];
-found = False
 
 # utils
 
@@ -33,15 +32,12 @@ def popcount(x):
         return bin(x).count("1");
 
 def print_path(path, prefix = None):
-        global found;
-
-        found = True
-
         if prefix is not None:
                 print(prefix);
 
         for i, node in enumerate(path):
                 print("{})\n{}\n".format(i + 1, node));
+
 # utils
 
 
@@ -198,7 +194,6 @@ def dfs_iterative():
 def main(argv):
         global src_data;
         global dest_data;
-        global found;
         global max_sols;
 
         argc = len(argv);
@@ -282,7 +277,7 @@ def main(argv):
                 print("The search algorithm was timed out.");
                 return;
 
-        if not found:
+        if sols_found == 0:
                 print("No path from source to destination was found.");
 
 
