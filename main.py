@@ -2,6 +2,10 @@ import sys
 import copy
 from random import randrange
 
+src_data = [];
+dest_data = [];
+found = False
+
 # utils
 
 def get_bitfields(n):
@@ -24,15 +28,16 @@ def popcount(x):
         return bin(x).count("1");
 
 def print_path(path, prefix = None):
+        global found;
+
+        found = True
+
         if prefix is not None:
                 print(prefix);
 
         for i, node in enumerate(path):
                 print("{})\n{}\n".format(i + 1, node));
 # utils
-
-src_data = [];
-dest_data = [];
 
 
 class Node:
@@ -92,7 +97,6 @@ def bfs():
         dest = Node(None, dest_data);
 
         q = [[src]];
-
         while len(q) > 0:
                 path_u = q.pop(0);
                 u = path_u[len(path_u) - 1];
@@ -108,6 +112,28 @@ def bfs():
                         new_path = copy.deepcopy(path_u);
                         new_path.append(v);
                         q.append(new_path);
+
+def dfs():
+        src  = Node(None, src_data);
+        dest = Node(None, dest_data);
+
+        dfs_impl([src], dest);
+
+def dfs_impl(path_so_far, dest):
+        u = path_so_far[len(path_so_far) - 1];
+
+        if u == dest:
+                print_path(path_so_far, "[ PATH ]")
+                return;
+
+        for v in u.neighbours():
+                if v in path_so_far:
+                        continue;
+
+                path_so_far.append(v);
+                dfs_impl(path_so_far, dest);
+                path_so_far.pop();
+
 
 def dfs_iterative():
         src  = Node(None, src_data);
@@ -136,6 +162,10 @@ def main(argv):
                 print("Error: argc < 2");
                 exit(1);
 
+        global src_data;
+        global dest_data;
+        global found;
+
         # read file into string
         filename = argv[1];
         file = open(filename, "r");
@@ -159,6 +189,7 @@ def main(argv):
         # choose handler based on command-line argument
         handlers = {
                 "bfs"           : bfs,
+                "dfs"           : dfs,
                 "dfs_iterative" : dfs_iterative
         };
 
@@ -171,6 +202,9 @@ def main(argv):
 
         # call the chosen search method
         method();
+
+        if not found:
+                print("No path from source to destination was found");
 
 
 if __name__ == "__main__":
