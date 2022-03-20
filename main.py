@@ -132,16 +132,18 @@ def dfs_iterative():
 
 
 def main(argv):
-        if len(argv) != 2:
-                print("Error: argc != 2");
+        if len(argv) < 2:
+                print("Error: argc < 2");
                 exit(1);
 
+        # read file into string
         filename = argv[1];
         file = open(filename, "r");
         lines = file.readlines();
         lines = [line[:-1] for line in lines];
         file.close();
 
+        # get source and destination from input
         i = 0;
         for _ in range(0, len(lines)):
                 if lines[i] == "":
@@ -154,7 +156,21 @@ def main(argv):
         for j in range(i, len(lines)):
                 dest_data.append(lines[j]);
 
-        dfs_iterative();
+        # choose handler based on command-line argument
+        handlers = {
+                "bfs"           : bfs,
+                "dfs_iterative" : dfs_iterative
+        };
+
+        method = None;
+
+        try:
+                method = handlers[argv[2]];
+        except:
+                method = dfs_iterative;
+
+        # call the chosen search method
+        method();
 
 
 if __name__ == "__main__":
