@@ -19,11 +19,20 @@ def get_bitfields(n):
         res = [];
 
         for i in range(0, n):
-                current = [];
-
                 for j in range(i, n):
-                        current.append(j);
-                        res.append(copy.deepcopy(current));
+                        current = []
+
+                        for k in range(0, i):
+                                current.append(k);
+
+                        for k in range(j + 1, n):
+                                current.append(k);
+
+                        if len(current) == 0:
+                                continue;
+
+                        res.append(current);
+
 
         return res;
 
