@@ -106,6 +106,33 @@ class Node:
 
                 return res;
 
+def heuristic_v1(state):
+        if state == dest_data:
+                return 0;
+        return 1;
+
+def heuristic_v2(state):
+        n1 = len(state);
+        m1 = len(state[0]);
+
+        n2 = len(dest_data);
+        m2 = len(dest_data[0]);
+
+        if n2 > n1 or m2 > m1:
+                return int(1e9);
+
+        total_cost = 0;
+
+        row_surplus = n1 - n2;
+        if row_surplus > 0:
+                total_cost += m2 / row_surplus;
+
+        col_surplus = m1 - m2;
+        if col_surplus > 0:
+                total_cost += 1;
+
+        return total_cost;
+
 @stopit.threading_timeoutable(default = "1")
 def bfs():
         global sols_found;
