@@ -18,16 +18,12 @@ usage      = ("usage: python3 main.py --file <filename> [--method <search_method
 def get_bitfields(n):
         res = [];
 
-        for bitfield in range(1, (2**n) - 1):
-                remaining = [];
+        for i in range(0, n):
+                current = [];
 
-                for pos in range(0, n):
-                        mask = 1 << pos;
-
-                        if (~bitfield) & mask:
-                                remaining.append(pos);
-
-                res.append(remaining);
+                for j in range(i, n):
+                        current.append(j);
+                        res.append(copy.deepcopy(current));
 
         return res;
 
@@ -51,9 +47,18 @@ def printerr(*args):
 # utils
 
 class Node:
-        def __init__(self, id, data):
+        def __init__(self, id, data, g = None, heuristic = None):
                 self.id = id;
                 self.data = data;
+
+                self.g = None
+                self.h = None;
+                self.f = None;
+
+                if heuristic is not None:
+                        self.g = g;
+                        self.h = heuristic(self.data);
+                        self.f = self.g + self.h;
 
                 if id is None:
                         self.id = randrange(int(1e9));
@@ -223,7 +228,7 @@ def main(argv):
                                 filename = argv[i + 1];
                                 i += 1;
 
-                        if argv[i] == "--stop-after" == "-s":
+                        if argv[i] == "--stop-after" or argv[i] == "-s":
                                 max_sols = int(argv[i + 1]);
                                 i += 1;
 
