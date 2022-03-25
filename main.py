@@ -15,7 +15,7 @@ usage      = ("usage: python3 main.py --file <filename> [--method <search_method
 # global variables
 
 # utils
-def get_bitfields(n):
+def remaining_after_cut(n):
         res = [];
 
         for i in range(0, n):
@@ -32,7 +32,6 @@ def get_bitfields(n):
                                 continue;
 
                         res.append(current);
-
 
         return res;
 
@@ -91,7 +90,7 @@ class Node:
                 res = [];
 
                 # cut columns
-                for remaining in get_bitfields(m):
+                for remaining in remaining_after_cut(m):
 
                         new_data = [];
                         for i in range(0, n):
@@ -105,7 +104,7 @@ class Node:
                         res.append(Node(None, new_data));
 
                 # cut rows
-                for remaining in get_bitfields(n):
+                for remaining in remaining_after_cut(n):
                         new_data = [];
 
                         for i in remaining:
