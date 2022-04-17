@@ -67,7 +67,6 @@ def check_full_rows(mat):
 def via_rows(rows):
         return "Eliminated rows: {}".format(", ".join(map(str, rows)))
 
-
 def via_columns(cols):
         return "Eliminated columns: {}".format(", ".join(map(str, cols)))
 
@@ -368,9 +367,6 @@ def ida_star(hfunc):
 
         bound = src.h
         while True:
-                if sols_found == max_sols:
-                        break
-
                 res = ida_star_impl([src], dest, bound, hfunc)
 
                 if sols_found == max_sols:
