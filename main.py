@@ -4,6 +4,7 @@ import stopit
 import time
 import heapq
 import itertools
+import queue
 from random import randrange
 
 # global variables
@@ -261,11 +262,12 @@ def bfs():
         src = Node(None, src_data, 0)
         dest = Node(None, dest_data, -1)
 
-        q = [[src]]
-        while len(q) > 0:
-                max_nodes_in_mem = max(max_nodes_in_mem, len(q))
+        q = queue.Queue()
+        q.put([src])
+        while not q.empty():
+                max_nodes_in_mem = max(max_nodes_in_mem, q.qsize())
 
-                path_u = q.pop(0)
+                path_u = q.get()
                 u = path_u[len(path_u) - 1]
 
                 if u == dest:
@@ -283,7 +285,7 @@ def bfs():
 
                         new_path = copy.deepcopy(path_u)
                         new_path.append(v)
-                        q.append(new_path)
+                        q.put(new_path)
 
         return "0"
 
@@ -526,7 +528,7 @@ def main(argv):
                 print("No solutions possible for any search algorithm.")
                 return
 
-        # algorithm table
+        # tables for algorithms and heuristics
         methods_normal = [
             ("bfs",           bfs),
             ("dfs",           dfs),
