@@ -46,8 +46,8 @@ def check_full_rows(mat):
         n, m = len(mat), len(mat[0]);
 
         for i in range(n):
-            if len(mat[i]) != m:
-                    return False;
+                if len(mat[i]) != m:
+                        return False;
 
         return True;
 
@@ -104,7 +104,7 @@ class Node:
 
                 return res[:-1];
 
-        def neighbours(self):
+        def neighbours(self, hfunc = None):
                 global calculated_nodes;
                 calculated_nodes += 1;
 
@@ -142,6 +142,7 @@ class Node:
                                         cost += (self.data[i][j] != self.data[i - 1][j]);
 
                         res.append(Node(None, new_data, self.g + cost,
+                                        heuristic = hfunc,
                                         via = via_columns(pos_cut)));
 
                 # cut rows
@@ -154,6 +155,7 @@ class Node:
                                 new_data.append(copy.deepcopy(self.data[i]));
 
                         res.append(Node(None, new_data, self.g + (m / len(pos_cut)),
+                                        heuristic = hfunc,
                                         via = via_rows(pos_cut)));
 
                 return res;
@@ -177,7 +179,7 @@ def heuristic_v2(state):
         m2 = len(dest_data[0]);
 
         if n2 > n1 or m2 > m1:
-                return int(1e9);
+                return float('inf');
 
         total_cost = 0;
 
@@ -294,6 +296,72 @@ def dfs_iterative():
 
         return "0";
 
+@stopit.threading_timeoutable(default = "1")
+def ida_star(hfunc):
+        global max_sols;
+        global sols_found;
+
+        src  = Node(None, src_data, 0, hfunc);
+        dest = Node(None, dest_data, -1);
+
+        bound = src.h;
+        while True:
+                if sols_found == max_sols:
+                        break;
+
+                res = ida_star_impl([src], dest, bound, hfunc);
+
+                if sols_found == max_sols:
+                        break;
+
+                if res == float('inf'):
+                        break;
+
+                bound = res;
+
+        return "0";
+
+def ida_star_impl(path_so_far, dest, bound, hfunc):
+        global sols_found;
+        global max_nodes_in_mem;
+
+        max_nodes_in_mem = max(max_nodes_in_mem, len(path_so_far));
+
+        if sols_found == max_sols:
+                return 0;
+
+        u = path_so_far[len(path_so_far) - 1];
+
+        if u.f > bound:
+                return u.f;
+
+        if u == dest and u.f == bound:
+                print_path(path_so_far, "[ PATH ]")
+                sols_found += 1;
+
+                if sols_found == max_sols:
+                        return 0;
+
+        neighbours = u.neighbours(hfunc);
+        neighbours = sorted(neighbours, key = lambda node: node.f);
+        min_b = float('inf');
+        for v in neighbours:
+                if v in path_so_far:
+                        continue;
+
+                path_so_far.append(v);
+                res = ida_star_impl(path_so_far, dest, bound, hfunc);
+
+                if sols_found == max_sols:
+                        return 0;
+
+                if res < min_b:
+                        min_b = res;
+
+                path_so_far.pop();
+
+        return min_b;
+
 def main(argv):
         global src_data;
         global dest_data;
@@ -363,15 +431,24 @@ def main(argv):
                 print("No solutions possible for any search algorithm.");
                 return;
 
-        # choose handler based on command-line argument
-        methods = [
+        # algorithm table
+        methods_normal = [
                 ("bfs",           bfs),
                 ("dfs",           dfs),
                 ("dfs_iterative", dfs_iterative)
         ];
 
+        methods_informed = [
+                ("ida_star", ida_star)
+        ];
+
+        heuristics = [
+                ("trivial", heuristic_v1),
+                ("v2",     heuristic_v2)
+        ];
+
         # search with all methods
-        for mname, mfunc in methods:
+        for mname, mfunc in methods_normal:
                 print("Searching with algorithm: {}\n".format(mname));
 
                 # reset global state
@@ -391,6 +468,29 @@ def main(argv):
 
                 print("Max nodes in memory: {}".format(max_nodes_in_mem));
                 print("Expanded nodes: {}\n".format(calculated_nodes));
+
+        for mname, mfunc in methods_informed:
+                for hname, hfunc in heuristics:
+                        print("Searching with algorithm: {}".format(mname));
+                        print("Using heuristic: {}\n".format(hname))
+
+                        # reset global state
+                        max_nodes_in_mem = 0;
+                        calculated_nodes = 0;
+                        sols_found = 0;
+                        begin_time = time.time();
+
+                        # apply search algorithm
+                        res = mfunc(hfunc, timeout = timeout_sec);
+
+                        if res == "1":
+                                print("The search algorithm was timed out.");
+
+                        if sols_found == 0:
+                                print("No path from source to destination was found.");
+
+                        print("Max nodes in memory: {}".format(max_nodes_in_mem));
+                        print("Expanded nodes: {}\n".format(calculated_nodes));
 
 
 if __name__ == "__main__":
