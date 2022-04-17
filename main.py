@@ -182,7 +182,7 @@ class Node:
 
                                 new_data.append(line)
 
-                        cost = 0
+                        k = 0
 
                         # calculate horizontal pair costs
                         left = pos_cut[0]
@@ -190,13 +190,14 @@ class Node:
 
                         for i in range(0, n):
                                 for j in range(left + 1, right + 1):
-                                        cost += (self.data[i][j] != self.data[i][j - 1])
+                                        k += (self.data[i][j] != self.data[i][j - 1])
 
                         # calculate vertical pair costs
                         for i in range(1, n):
                                 for j in pos_cut:
-                                        cost += (self.data[i][j] != self.data[i - 1][j])
+                                        k += (self.data[i][j] != self.data[i - 1][j])
 
+                        cost = 1 + (k / len(pos_cut))
                         res.append(
                             Node(
                                 None,
