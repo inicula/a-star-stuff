@@ -5,13 +5,15 @@ import time
 from random import randrange
 
 # global variables
-begin_time = time.time();
-max_sols   = int(1e9);
-sols_found = 0;
-src_data   = [];
-dest_data  = [];
-usage      = ("usage: python3 main.py --file <filename> [--method <search_method>] "
-              "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]");
+begin_time       = time.time();
+max_nodes_in_mem = 0;
+calculated_nodes = 0;
+max_sols         = int(1e9);
+sols_found       = 0;
+src_data         = [];
+dest_data        = [];
+usage            = ("usage: python3 main.py --file <filename> "
+                    "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]");
 # global variables
 
 # utils
@@ -38,6 +40,21 @@ def remaining_after_cut(n):
 def popcount(x):
         return bin(x).count("1");
 
+def check_full_rows(mat):
+        if len(mat) == 0:
+                return False;
+
+        if len(mat[0]) == 0:
+                return False;
+
+        n, m = len(mat), len(mat[0]);
+
+        for i in range(n):
+            if len(mat[i]) != m:
+                    return False;
+
+        return True;
+
 def print_path(path, prefix = None):
         now = time.time();
         dur = now - begin_time;
@@ -48,7 +65,7 @@ def print_path(path, prefix = None):
         for i, node in enumerate(path):
                 print("{})\n{}\n".format(i + 1, node));
 
-        print("Solution found after {} seconds\n".format(dur));
+        print("Solution found after {} seconds".format(dur));
 
 def printerr(*args):
         print(*args, file = sys.stderr);
@@ -84,6 +101,9 @@ class Node:
                 return res[:-1];
 
         def neighbours(self):
+                global calculated_nodes;
+                calculated_nodes += 1;
+
                 n = len(self.data);
                 m = len(self.data[0]);
 
@@ -113,6 +133,12 @@ class Node:
                         res.append(Node(None, new_data));
 
                 return res;
+
+def check_early(initial_state):
+        n1, m1 = len(initial_state), len(initial_state[0]);
+        n2, m2 = len(dest_data), len(dest_data[0]);
+
+        return n1 >= n2 and m1 >= m2;
 
 def heuristic_v1(state):
         if state == dest_data:
@@ -144,12 +170,15 @@ def heuristic_v2(state):
 @stopit.threading_timeoutable(default = "1")
 def bfs():
         global sols_found;
+        global max_nodes_in_mem;
 
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
         q = [[src]];
         while len(q) > 0:
+                max_nodes_in_mem = max(max_nodes_in_mem, len(q));
+
                 path_u = q.pop(0);
                 u = path_u[len(path_u) - 1];
 
@@ -182,6 +211,9 @@ def dfs():
 
 def dfs_impl(path_so_far, dest):
         global sols_found;
+        global max_nodes_in_mem;
+
+        max_nodes_in_mem = max(max_nodes_in_mem, len(path_so_far));
 
         if sols_found == max_sols:
                 return;
@@ -204,12 +236,15 @@ def dfs_impl(path_so_far, dest):
 @stopit.threading_timeoutable(default = "1")
 def dfs_iterative():
         global sols_found;
+        global max_nodes_in_mem;
 
         src  = Node(None, src_data);
         dest = Node(None, dest_data);
 
         stack = [[src]];
         while len(stack) > 0:
+                max_nodes_in_mem = max(max_nodes_in_mem, len(stack));
+
                 path_u = stack.pop();
                 u = path_u[len(path_u) - 1];
 
@@ -236,6 +271,8 @@ def main(argv):
         global src_data;
         global dest_data;
         global max_sols;
+        global calculated_nodes;
+        global max_nodes_in_mem;
         global sols_found;
         global begin_time;
 
@@ -247,14 +284,9 @@ def main(argv):
                 exit(1);
 
         filename    = "";
-        method_arg  = "";
         timeout_sec = 60;
         try:
                 for i in range(1, argc):
-                        if argv[i] == "--method" or argv[i] == "-m":
-                                method_arg = argv[i + 1];
-                                i += 1;
-
                         if argv[i] == "--timeout" or argv[i] == "-t":
                                 timeout_sec = float(argv[i + 1]);
                                 i += 1;
@@ -294,32 +326,44 @@ def main(argv):
         for j in range(i, len(lines)):
                 dest_data.append(lines[j]);
 
+        # check input validity
+        if not (check_full_rows(src_data) and check_full_rows(dest_data)):
+                printerr("Invalid input.");
+                return;
+
+        # check if solutions are possible
+        if not check_early(src_data):
+                print("No solutions possible for any search algorithm.");
+                return;
+
         # choose handler based on command-line argument
-        handlers = {
-                "bfs"           : bfs,
-                "dfs"           : dfs,
-                "dfs_iterative" : dfs_iterative
-        };
+        methods = [
+                ("bfs",           bfs),
+                ("dfs",           dfs),
+                ("dfs_iterative", dfs_iterative)
+        ];
 
-        method = dfs;
-        if method_arg in handlers:
-                method = handlers[method_arg];
-        else:
-                printerr(
-                    "Method '{}' not found. Picking depth-first search as default.\n".
-                    format(method_arg)
-                );
+        # search with all methods
+        for mname, mfunc in methods:
+                print("Searching with algorithm: {}\n".format(mname));
 
-        # call the chosen search method
-        sols_found = 0;
-        begin_time = time.time();
-        res = method(timeout = timeout_sec);
+                # reset global state
+                max_nodes_in_mem = 0;
+                calculated_nodes = 0;
+                sols_found = 0;
+                begin_time = time.time();
 
-        if res == "1":
-                print("The search algorithm was timed out.");
+                # apply search algorithm
+                res = mfunc(timeout = timeout_sec);
 
-        if sols_found == 0:
-                print("No path from source to destination was found.");
+                if res == "1":
+                        print("The search algorithm was timed out.");
+
+                if sols_found == 0:
+                        print("No path from source to destination was found.");
+
+                print("Max nodes in memory: {}".format(max_nodes_in_mem));
+                print("Expanded nodes: {}\n".format(calculated_nodes));
 
 
 if __name__ == "__main__":
