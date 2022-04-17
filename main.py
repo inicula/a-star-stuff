@@ -463,10 +463,6 @@ def main(argv):
         global src_data
         global dest_data
         global max_sols
-        global calculated_nodes
-        global max_nodes_in_mem
-        global sols_found
-        global begin_time
 
         argc = len(argv)
 
