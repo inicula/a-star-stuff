@@ -69,7 +69,7 @@ def print_path(path, prefix = None):
                 print("{}\n\n{})\n{}\n".format(node.via, i + 2, node));
 
         print("Solution cost: {}".format(path[len(path) - 1].g))
-        print("Solution found after {} seconds".format(dur));
+        print("Solution found after {} seconds\n".format(dur));
 
 def printerr(*args):
         print(*args, file = sys.stderr);
@@ -166,12 +166,12 @@ def check_early(initial_state):
 
         return n1 >= n2 and m1 >= m2;
 
-def heuristic_v1(state):
+def heuristic_trivial(state):
         if state == dest_data:
                 return 0;
-        return 1;
+        return sys.float_info.epsilon;
 
-def heuristic_v2(state):
+def heuristic_a1(state):
         n1 = len(state);
         m1 = len(state[0]);
 
@@ -180,6 +180,9 @@ def heuristic_v2(state):
 
         if n2 > n1 or m2 > m1:
                 return float('inf');
+
+        if n1 == n2 and m1 == m2 and state == dest_data:
+                return 0;
 
         total_cost = 0;
 
@@ -194,7 +197,19 @@ def heuristic_v2(state):
         return total_cost;
 
 def non_admissible_heuristic(state):
-        return len(dest_data) - len(state) + len(dest_data[0]) - len(state[0]);
+        if state == dest_data:
+                return 0;
+
+        n1 = len(state);
+        m1 = len(state[0]);
+
+        n2 = len(dest_data);
+        m2 = len(dest_data[0]);
+
+        if n2 > n1 or m2 > m1:
+                return float('inf');
+
+        return max(1, len(dest_data) - len(state) + len(dest_data[0]) - len(state[0]));
 
 @stopit.threading_timeoutable(default = "1")
 def bfs():
@@ -284,6 +299,9 @@ def dfs_iterative():
                         if sols_found == max_sols:
                                 break;
 
+                        continue;
+
+                if not check_early(u.data):
                         continue;
 
                 for v in u.neighbours():
@@ -443,8 +461,9 @@ def main(argv):
         ];
 
         heuristics = [
-                ("trivial", heuristic_v1),
-                ("v2",     heuristic_v2)
+                ("trivial",        heuristic_trivial),
+                ("admissible_1",   heuristic_a1),
+                ("non_admissible", non_admissible_heuristic)
         ];
 
         # search with all methods
