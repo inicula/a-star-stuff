@@ -17,28 +17,24 @@ usage            = ("usage: python3 main.py --file <filename> "
 # global variables
 
 # utils
-def remaining_after_cut(n):
+def possible_cuts(n):
         res = [];
 
         for i in range(0, n):
                 for j in range(i, n):
-                        current = []
+                        current = list(range(i, j + 1))
 
-                        for k in range(0, i):
-                                current.append(k);
-
-                        for k in range(j + 1, n):
-                                current.append(k);
-
-                        if len(current) == 0:
+                        if len(current) == 0 or len(current) == n:
                                 continue;
 
                         res.append(current);
 
         return res;
 
-def popcount(x):
-        return bin(x).count("1");
+def remaining_after_cut(cut, n):
+        left = list(range(0, cut[0]));
+        right = list(range(cut[len(cut) - 1] + 1, n));
+        return left + right;
 
 def check_full_rows(mat):
         if len(mat) == 0:
@@ -55,6 +51,12 @@ def check_full_rows(mat):
 
         return True;
 
+def via_rows(rows):
+        return "Eliminated rows: {}".format(", ".join(map(str, rows)));
+
+def via_columns(cols):
+        return "Eliminated columns: {}".format(", ".join(map(str, cols)));
+
 def print_path(path, prefix = None):
         now = time.time();
         dur = now - begin_time;
@@ -62,9 +64,11 @@ def print_path(path, prefix = None):
         if prefix is not None:
                 print(prefix);
 
-        for i, node in enumerate(path):
-                print("{})\n{}\n".format(i + 1, node));
+        print("{})\n{}\n".format(1, path[0]));
+        for i, node in enumerate(path[1 : ]):
+                print("{}\n\n{})\n{}\n".format(node.via, i + 2, node));
 
+        print("Solution cost: {}".format(path[len(path) - 1].g))
         print("Solution found after {} seconds".format(dur));
 
 def printerr(*args):
@@ -72,16 +76,16 @@ def printerr(*args):
 # utils
 
 class Node:
-        def __init__(self, id, data, g = None, heuristic = None):
+        def __init__(self, id, data, g, heuristic = None, via = None):
                 self.id = id;
                 self.data = data;
+                self.via = via;
 
-                self.g = None
+                self.g = g;
                 self.h = None;
                 self.f = None;
 
                 if heuristic is not None:
-                        self.g = g;
                         self.h = heuristic(self.data);
                         self.f = self.g + self.h;
 
@@ -110,7 +114,8 @@ class Node:
                 res = [];
 
                 # cut columns
-                for remaining in remaining_after_cut(m):
+                for pos_cut in possible_cuts(m):
+                        remaining = remaining_after_cut(pos_cut, m);
 
                         new_data = [];
                         for i in range(0, n):
@@ -121,16 +126,35 @@ class Node:
 
                                 new_data.append(line);
 
-                        res.append(Node(None, new_data));
+                        cost = 0;
+
+                        # calculate horizontal pair costs
+                        left = pos_cut[0];
+                        right = pos_cut[len(pos_cut) - 1];
+
+                        for i in range(0, n):
+                                for j in range(left + 1, right + 1):
+                                        cost += (self.data[i][j] != self.data[i][j - 1]);
+
+                        # calculate vertical pair costs
+                        for i in range(1, n):
+                                for j in pos_cut:
+                                        cost += (self.data[i][j] != self.data[i - 1][j]);
+
+                        res.append(Node(None, new_data, self.g + cost,
+                                        via = via_columns(pos_cut)));
 
                 # cut rows
-                for remaining in remaining_after_cut(n):
+                for pos_cut in possible_cuts(n):
+                        remaining = remaining_after_cut(pos_cut, n);
+
                         new_data = [];
 
                         for i in remaining:
                                 new_data.append(copy.deepcopy(self.data[i]));
 
-                        res.append(Node(None, new_data));
+                        res.append(Node(None, new_data, self.g + (m / len(pos_cut)),
+                                        via = via_rows(pos_cut)));
 
                 return res;
 
@@ -167,13 +191,16 @@ def heuristic_v2(state):
 
         return total_cost;
 
+def non_admissible_heuristic(state):
+        return len(dest_data) - len(state) + len(dest_data[0]) - len(state[0]);
+
 @stopit.threading_timeoutable(default = "1")
 def bfs():
         global sols_found;
         global max_nodes_in_mem;
 
-        src  = Node(None, src_data);
-        dest = Node(None, dest_data);
+        src  = Node(None, src_data, 0);
+        dest = Node(None, dest_data, -1);
 
         q = [[src]];
         while len(q) > 0:
@@ -203,8 +230,8 @@ def bfs():
 
 @stopit.threading_timeoutable(default = "1")
 def dfs():
-        src  = Node(None, src_data);
-        dest = Node(None, dest_data);
+        src  = Node(None, src_data, 0);
+        dest = Node(None, dest_data, -1);
 
         dfs_impl([src], dest);
         return "0";
@@ -238,8 +265,8 @@ def dfs_iterative():
         global sols_found;
         global max_nodes_in_mem;
 
-        src  = Node(None, src_data);
-        dest = Node(None, dest_data);
+        src  = Node(None, src_data, 0);
+        dest = Node(None, dest_data, -1);
 
         stack = [[src]];
         while len(stack) > 0:
