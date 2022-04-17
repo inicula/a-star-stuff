@@ -83,7 +83,7 @@ def via_columns(cols):
         return "Eliminated columns: {}".format(", ".join(map(str, cols)))
 
 def get_f(path):
-        # predicate for returning the tentative distance from a path sequence
+        # function for returning the tentative distance from a path sequence
 
         return path[len(path) - 1].f
 
@@ -535,7 +535,7 @@ def main(argv):
         # check input validity
         if not (check_full_rows(src_data) and check_full_rows(dest_data)):
                 printerr("Invalid input.")
-                return
+                exit(1)
 
         # check if solutions are possible
         if not check_early(src_data):
