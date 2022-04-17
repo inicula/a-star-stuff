@@ -20,6 +20,8 @@ usage            = ("usage: python3 main.py --file <filename> "
 
 # utils
 def reset_global_state():
+        # reset global variables before each algorithm
+
         global max_nodes_in_mem
         global calculated_nodes
         global sols_found
@@ -31,6 +33,8 @@ def reset_global_state():
         begin_time       = time.time()
 
 def possible_cuts(n):
+        # get all non-empty consecutive sequences from [0 ... n - 1]
+
         res = []
 
         for i in range(0, n):
@@ -45,11 +49,15 @@ def possible_cuts(n):
         return res
 
 def remaining_after_cut(cut, n):
+        # get remaining rows/columns after applying a cut
+
         left = list(range(0, cut[0]))
         right = list(range(cut[len(cut) - 1] + 1, n))
         return left + right
 
 def check_full_rows(mat):
+        # check matrix representation validity
+
         if len(mat) == 0:
                 return False
 
@@ -65,15 +73,23 @@ def check_full_rows(mat):
         return True
 
 def via_rows(rows):
+        # get explicit string for a row cut
+
         return "Eliminated rows: {}".format(", ".join(map(str, rows)))
 
 def via_columns(cols):
+        # get explicit string for a column cut
+
         return "Eliminated columns: {}".format(", ".join(map(str, cols)))
 
 def get_f(path):
+        # predicate for returning the tentative distance from a path sequence
+
         return path[len(path) - 1].f
 
 def print_path(path, prefix=None):
+        # print a path that leads to a goal node and also some of its details
+
         now = time.time()
         dur = now - begin_time
 
@@ -88,6 +104,8 @@ def print_path(path, prefix=None):
         print("Solution found after {:.3f} seconds\n".format(dur))
 
 def print_alg_info(res):
+        # print information about an algorithm and its used resources
+
         if res == "1":
                 print("The search algorithm was timed out.")
 
@@ -99,6 +117,8 @@ def print_alg_info(res):
 
 
 def printerr(*args):
+        # print to standard error
+
         print(*args, file=sys.stderr)
 
 # Node class and search functions
@@ -203,6 +223,8 @@ class Node:
                 return res
 
 def check_early(initial_state):
+        # check if destination node is reachable
+
         n1, m1 = len(initial_state), len(initial_state[0])
         n2, m2 = len(dest_data), len(dest_data[0])
 
