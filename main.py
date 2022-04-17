@@ -2,6 +2,7 @@ import sys
 import copy
 import stopit
 import time
+import heapq
 from random import randrange
 
 # global variables
@@ -57,6 +58,9 @@ def via_rows(rows):
 def via_columns(cols):
         return "Eliminated columns: {}".format(", ".join(map(str, cols)));
 
+def get_f(path):
+        return path[len(path) - 1].f;
+
 def print_path(path, prefix = None):
         now = time.time();
         dur = now - begin_time;
@@ -69,7 +73,7 @@ def print_path(path, prefix = None):
                 print("{}\n\n{})\n{}\n".format(node.via, i + 2, node));
 
         print("Solution cost: {}".format(path[len(path) - 1].g))
-        print("Solution found after {} seconds\n".format(dur));
+        print("Solution found after {:.3f} seconds\n".format(dur));
 
 def printerr(*args):
         print(*args, file = sys.stderr);
@@ -94,6 +98,9 @@ class Node:
 
         def __eq__(self, other):
                 return self.data == other.data;
+
+        def __lt__(self, other):
+                return self.f < other.f;
 
         def __str__(self):
                 res = "";
@@ -380,6 +387,41 @@ def ida_star_impl(path_so_far, dest, bound, hfunc):
 
         return min_b;
 
+@stopit.threading_timeoutable(default = "1")
+def a_star(hfunc):
+        global sols_found;
+        global max_nodes_in_mem;
+
+        src  = Node(None, src_data, 0, hfunc);
+        dest = Node(None, dest_data, -1);
+
+        q = [];
+        heapq.heappush(q, (get_f([src]), [src]));
+        while len(q) > 0:
+                max_nodes_in_mem = max(max_nodes_in_mem, len(q));
+
+                _, path_u = heapq.heappop(q);
+                u = path_u[len(path_u) - 1];
+
+                if u == dest:
+                        print_path(path_u, "[ PATH ]");
+
+                        sols_found += 1;
+                        if sols_found == max_sols:
+                                break;
+
+                        continue;
+
+                for v in u.neighbours(hfunc):
+                        if v in path_u:
+                                continue;
+
+                        new_path = copy.deepcopy(path_u);
+                        new_path.append(v);
+                        heapq.heappush(q, (get_f(new_path), new_path));
+
+        return "0";
+
 def main(argv):
         global src_data;
         global dest_data;
@@ -457,7 +499,8 @@ def main(argv):
         ];
 
         methods_informed = [
-                ("ida_star", ida_star)
+                ("ida_star", ida_star),
+                ("a_star",   a_star)
         ];
 
         heuristics = [
