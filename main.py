@@ -19,6 +19,14 @@ usage            = ("usage: python3 main.py --file <filename> "
                     "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]")
 
 # utils
+def lines_from_file(filename):
+        file  = open(filename, "r")
+        lines = file.readlines()
+        lines = [line[:-1] for line in lines]
+        file.close()
+
+        return lines
+
 def reset_global_state():
         # reset global variables before each algorithm
 
@@ -509,10 +517,7 @@ def main(argv):
                 exit(1)
 
         # read file into string
-        file  = open(filename, "r")
-        lines = file.readlines()
-        lines = [line[:-1] for line in lines]
-        file.close()
+        lines = lines_from_file(filename)
 
         # get source and destination from input
         i = 0
