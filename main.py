@@ -3,6 +3,7 @@ import copy
 import stopit
 import time
 import heapq
+import itertools
 from random import randrange
 
 # global variables
@@ -17,6 +18,17 @@ usage            = ("usage: python3 main.py --file <filename> "
                     "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]")
 
 # utils
+def reset_global_state():
+        global max_nodes_in_mem
+        global calculated_nodes
+        global sols_found
+        global begin_time
+
+        max_nodes_in_mem = 0
+        calculated_nodes = 0
+        sols_found       = 0
+        begin_time       = time.time()
+
 def possible_cuts(n):
         res = []
 
@@ -74,6 +86,17 @@ def print_path(path, prefix=None):
 
         print("Solution cost: {}".format(path[len(path) - 1].g))
         print("Solution found after {:.3f} seconds\n".format(dur))
+
+def print_alg_info(res):
+        if res == "1":
+                print("The search algorithm was timed out.")
+
+        if sols_found == 0:
+                print("No path from source to destination was found.")
+
+        print("Max nodes in memory: {}".format(max_nodes_in_mem))
+        print("Expanded nodes: {}\n".format(calculated_nodes))
+
 
 def printerr(*args):
         print(*args, file=sys.stderr)
@@ -525,46 +548,21 @@ def main(argv):
         for mname, mfunc in methods_normal:
                 print("Searching with algorithm: {}\n".format(mname))
 
-                # reset global state
-                max_nodes_in_mem = 0
-                calculated_nodes = 0
-                sols_found       = 0
-                begin_time       = time.time()
+                reset_global_state()
 
                 # apply search algorithm
                 res = mfunc(timeout=timeout_sec)
+                print_alg_info(res)
 
-                if res == "1":
-                        print("The search algorithm was timed out.")
+        for (mname, mfunc), (hname, hfunc) in itertools.product(methods_informed, heuristics):
+                print("Searching with algorithm: {}".format(mname))
+                print("Using heuristic: {}\n".format(hname))
 
-                if sols_found == 0:
-                        print("No path from source to destination was found.")
+                reset_global_state()
 
-                print("Max nodes in memory: {}".format(max_nodes_in_mem))
-                print("Expanded nodes: {}\n".format(calculated_nodes))
-
-        for mname, mfunc in methods_informed:
-                for hname, hfunc in heuristics:
-                        print("Searching with algorithm: {}".format(mname))
-                        print("Using heuristic: {}\n".format(hname))
-
-                        # reset global state
-                        max_nodes_in_mem = 0
-                        calculated_nodes = 0
-                        sols_found       = 0
-                        begin_time       = time.time()
-
-                        # apply search algorithm
-                        res = mfunc(hfunc, timeout=timeout_sec)
-
-                        if res == "1":
-                                print("The search algorithm was timed out.")
-
-                        if sols_found == 0:
-                                print("No path from source to destination was found.")
-
-                        print("Max nodes in memory: {}".format(max_nodes_in_mem))
-                        print("Expanded nodes: {}\n".format(calculated_nodes))
+                # apply search algorithm
+                res = mfunc(hfunc, timeout=timeout_sec)
+                print_alg_info(res)
 
 
 if __name__ == "__main__":
