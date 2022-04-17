@@ -130,8 +130,7 @@ def printerr(*args):
 
 # Node class and search functions
 class Node:
-        def __init__(self, id, data, g, heuristic=None, via=None):
-                self.id = id
+        def __init__(self, data, g, heuristic=None, via=None):
                 self.data = data
                 self.via = via
 
@@ -142,9 +141,6 @@ class Node:
                 if heuristic is not None:
                         self.h = heuristic(self.data)
                         self.f = self.g + self.h
-
-                if id is None:
-                        self.id = randrange(int(1e9))
 
         def __eq__(self, other):
                 return self.data == other.data
@@ -200,7 +196,6 @@ class Node:
                         cost = 1 + (k / len(pos_cut))
                         res.append(
                             Node(
-                                None,
                                 new_data,
                                 self.g + cost,
                                 heuristic=hfunc,
@@ -219,7 +214,6 @@ class Node:
 
                         res.append(
                             Node(
-                                None,
                                 new_data,
                                 self.g + (m / len(pos_cut)),
                                 heuristic=hfunc,
@@ -281,8 +275,8 @@ def bfs():
         global sols_found
         global max_nodes_in_mem
 
-        src = Node(None, src_data, 0)
-        dest = Node(None, dest_data, -1)
+        src = Node(src_data, 0)
+        dest = Node(dest_data, -1)
 
         q = queue.Queue()
         q.put([src])
@@ -313,8 +307,8 @@ def bfs():
 
 @stopit.threading_timeoutable(default="1")
 def dfs():
-        src = Node(None, src_data, 0)
-        dest = Node(None, dest_data, -1)
+        src = Node(src_data, 0)
+        dest = Node(dest_data, -1)
 
         dfs_impl([src], dest)
         return "0"
@@ -348,8 +342,8 @@ def dfs_iterative():
         global sols_found
         global max_nodes_in_mem
 
-        src = Node(None, src_data, 0)
-        dest = Node(None, dest_data, -1)
+        src = Node(src_data, 0)
+        dest = Node(dest_data, -1)
 
         stack = [[src]]
         while len(stack) > 0:
@@ -385,8 +379,8 @@ def ida_star(hfunc):
         global max_sols
         global sols_found
 
-        src = Node(None, src_data, 0, hfunc)
-        dest = Node(None, dest_data, -1)
+        src = Node(src_data, 0, hfunc)
+        dest = Node(dest_data, -1)
 
         bound = src.h
         while True:
@@ -448,8 +442,8 @@ def a_star(hfunc):
         global sols_found
         global max_nodes_in_mem
 
-        src = Node(None, src_data, 0, hfunc)
-        dest = Node(None, dest_data, -1)
+        src = Node(src_data, 0, hfunc)
+        dest = Node(dest_data, -1)
 
         q = []
         heapq.heappush(q, (get_f([src]), [src]))
