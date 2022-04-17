@@ -27,6 +27,13 @@ def lines_from_file(filename):
 
         return lines
 
+def mat_size(mat):
+        n, m = len(mat), 0
+        if n != 0:
+                m = len(mat[0])
+
+        return n, m
+
 def reset_global_state():
         # reset global variables before each algorithm
 
@@ -66,13 +73,9 @@ def remaining_after_cut(cut, n):
 def check_full_rows(mat):
         # check matrix representation validity
 
-        if len(mat) == 0:
+        n, m = mat_size(mat)
+        if n == 0 or m == 0:
                 return False
-
-        if len(mat[0]) == 0:
-                return False
-
-        n, m = len(mat), len(mat[0])
 
         for i in range(n):
                 if len(mat[i]) != m:
@@ -94,13 +97,6 @@ def get_f(path):
         # function for returning the tentative distance from a path sequence
 
         return path[len(path) - 1].f
-
-def mat_size(mat):
-        n, m = len(mat), 0
-        if n != 0:
-                m = len(mat[0])
-
-        return n, m
 
 def print_path(path, prefix=None):
         # print a path that leads to a goal node and also some of its details
