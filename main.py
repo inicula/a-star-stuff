@@ -87,6 +87,13 @@ def get_f(path):
 
         return path[len(path) - 1].f
 
+def mat_size(mat):
+        n, m = len(mat), 0
+        if n != 0:
+                m = len(mat[0])
+
+        return n, m
+
 def print_path(path, prefix=None):
         # print a path that leads to a goal node and also some of its details
 
@@ -158,8 +165,7 @@ class Node:
                 global calculated_nodes
                 calculated_nodes += 1
 
-                n = len(self.data)
-                m = len(self.data[0])
+                n, m = mat_size(self.data)
 
                 res = []
 
@@ -225,8 +231,8 @@ class Node:
 def check_early(initial_state):
         # check if destination node is reachable
 
-        n1, m1 = len(initial_state), len(initial_state[0])
-        n2, m2 = len(dest_data), len(dest_data[0])
+        n1, m1 = mat_size(initial_state)
+        n2, m2 = mat_size(dest_data)
 
         return n1 >= n2 and m1 >= m2
 
@@ -236,11 +242,8 @@ def heuristic_trivial(state):
         return sys.float_info.epsilon
 
 def heuristic_a1(state):
-        n1 = len(state)
-        m1 = len(state[0])
-
-        n2 = len(dest_data)
-        m2 = len(dest_data[0])
+        n1, m1 = mat_size(state)
+        n2, m2 = mat_size(dest_data)
 
         if n2 > n1 or m2 > m1:
                 return float('inf')
@@ -261,19 +264,16 @@ def heuristic_a1(state):
         return total_cost
 
 def non_admissible_heuristic(state):
-        if state == dest_data:
-                return 0
-
-        n1 = len(state)
-        m1 = len(state[0])
-
-        n2 = len(dest_data)
-        m2 = len(dest_data[0])
+        n1, m1 = mat_size(state)
+        n2, m2 = mat_size(dest_data)
 
         if n2 > n1 or m2 > m1:
                 return float('inf')
 
-        return max(1, len(dest_data) - len(state) + len(dest_data[0]) - len(state[0]))
+        if state == dest_data:
+                return 0
+
+        return max(sys.float_info.epsilon, n1 - n2 + m1 - m2)
 
 @stopit.threading_timeoutable(default="1")
 def bfs():
@@ -530,6 +530,9 @@ def main(argv):
                 i += 1
 
         for j in range(i, len(lines)):
+                if lines[j] == "":
+                        continue
+
                 dest_data.append(lines[j])
 
         # check input validity
