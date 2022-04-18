@@ -7,6 +7,7 @@ import itertools
 import queue
 
 # global variables
+output_file      = sys.stdout
 begin_time       = time.time()
 max_nodes_in_mem = 0
 calculated_nodes = 0
@@ -15,9 +16,13 @@ sols_found       = 0
 src_data         = []
 dest_data        = []
 usage            = ("usage: python3 main.py --file <filename> "
-                    "[--timeout <timeout_value>] [--stop-after <number_of_solutions>]")
+                    "[--timeout <timeout_value>] [--stop-after <number_of_solutions>] "
+                    "[--output-dir <dir_path>]")
 
 # utils
+def mprint(*args):
+        print(*args, file=output_file)
+
 def lines_from_file(filename):
         file  = open(filename, "r")
         lines = file.readlines()
@@ -104,26 +109,26 @@ def print_path(path, prefix=None):
         dur = now - begin_time
 
         if prefix is not None:
-                print(prefix)
+                mprint(prefix)
 
-        print("{})\n{}\n".format(1, path[0]))
+        mprint("{})\n{}\n".format(1, path[0]))
         for i, node in enumerate(path[1:]):
-                print("{}\n\n{})\n{}\n".format(node.via, i + 2, node))
+                mprint("{}\n\n{})\n{}\n".format(node.via, i + 2, node))
 
-        print("Solution cost: {}".format(path[len(path) - 1].g))
-        print("Solution found after {:.3f} seconds\n".format(dur))
+        mprint("Solution cost: {}".format(path[len(path) - 1].g))
+        mprint("Solution found after {:.3f} seconds\n".format(dur))
 
 def print_alg_info(res):
         # print information about an algorithm and its used resources
 
         if res == "1":
-                print("The search algorithm was timed out.")
+                mprint("The search algorithm was timed out.")
 
         if sols_found == 0:
-                print("No path from source to destination was found.")
+                mprint("No path from source to destination was found.")
 
-        print("Max nodes in memory: {}".format(max_nodes_in_mem))
-        print("Expanded nodes: {}\n".format(calculated_nodes))
+        mprint("Max nodes in memory: {}".format(max_nodes_in_mem))
+        mprint("Expanded nodes: {}\n".format(calculated_nodes))
 
 
 def printerr(*args):
@@ -497,6 +502,7 @@ def main(argv):
         global src_data
         global dest_data
         global max_sols
+        global output_file
 
         argc = len(argv)
 
@@ -505,6 +511,7 @@ def main(argv):
                 printerr(usage)
                 exit(1)
 
+        output_dir  = "."
         filename    = ""
         timeout_sec = 60
         try:
@@ -519,6 +526,10 @@ def main(argv):
 
                         if argv[i] == "--stop-after" or argv[i] == "-s":
                                 max_sols = int(argv[i + 1])
+                                i += 1
+
+                        if argv[i] == "--output-dir":
+                                output_dir = argv[i + 1]
                                 i += 1
 
                 if filename == "":
@@ -555,7 +566,7 @@ def main(argv):
 
         # check if solutions are possible
         if not check_early(src_data):
-                print("No solutions possible for any search algorithm.")
+                mprint("No solutions possible for any search algorithm.")
                 return
 
         # tables for algorithms and heuristics
@@ -579,7 +590,10 @@ def main(argv):
 
         # search with all methods
         for mname, mfunc in methods_normal:
-                print("Searching with algorithm: {}\n".format(mname))
+                output_filename = "{}/{}.out".format(output_dir, mname)
+                output_file     = open(output_filename, "w")
+
+                mprint("Searching with algorithm: {}\n".format(mname))
 
                 reset_global_state()
 
@@ -587,15 +601,22 @@ def main(argv):
                 res = mfunc(timeout=timeout_sec)
                 print_alg_info(res)
 
+                output_file.close()
+
         for (mname, mfunc), (hname, hfunc) in itertools.product(methods_informed, heuristics):
-                print("Searching with algorithm: {}".format(mname))
-                print("Using heuristic: {}\n".format(hname))
+                output_filename = "{}/{}-{}.out".format(output_dir, mname, hname)
+                output_file     = open(output_filename, "w")
+
+                mprint("Searching with algorithm: {}".format(mname))
+                mprint("Using heuristic: {}\n".format(hname))
 
                 reset_global_state()
 
                 # apply search algorithm
                 res = mfunc(hfunc, timeout=timeout_sec)
                 print_alg_info(res)
+
+                output_file.close()
 
 
 if __name__ == "__main__":
