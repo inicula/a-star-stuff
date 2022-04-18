@@ -55,7 +55,6 @@ def possible_cuts(n):
         # get all non-empty consecutive sequences from [0 ... n - 1]
 
         res = []
-
         for i in range(0, n):
                 for j in range(i, n):
                         current = list(range(i, j + 1))
