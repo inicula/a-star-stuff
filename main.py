@@ -5,7 +5,6 @@ import time
 import heapq
 import itertools
 import queue
-from random import randrange
 
 # global variables
 begin_time       = time.time()
