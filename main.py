@@ -261,6 +261,24 @@ def heuristic_a1(state):
 
         return total_cost
 
+def heuristic_a2(state):
+        n1, m1 = mat_size(state)
+        n2, m2 = mat_size(dest_data)
+
+        if n1 == n2 and m1 == m2 and state == dest_data:
+                return 0
+
+        if n2 > n1 or m2 > m1:
+                return float('inf')
+
+        cost = 0
+        if n1 != n2:
+                cost += sys.float_info.epsilon
+        if m1 != m2:
+                cost += 1
+
+        return cost
+
 def non_admissible_heuristic(state):
         n1, m1 = mat_size(state)
         n2, m2 = mat_size(dest_data)
@@ -555,6 +573,7 @@ def main(argv):
         heuristics = [
             ("trivial",        heuristic_trivial),
             ("admissible_1",   heuristic_a1),
+            ("admissible_2",   heuristic_a2),
             ("non_admissible", non_admissible_heuristic)
         ]
 
