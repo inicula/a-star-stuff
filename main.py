@@ -1,3 +1,5 @@
+# README.md: https://github.com/niculaionut/a-star-stuff
+
 import sys
 import copy
 import stopit
