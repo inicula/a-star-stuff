@@ -467,7 +467,7 @@ def a_star(hfunc):
         global sols_found
         global max_nodes_in_mem
 
-        src = Node(src_data, 0, hfunc)
+        src  = Node(src_data, 0, hfunc)
         dest = Node(dest_data, -1)
 
         q = []
@@ -488,6 +488,69 @@ def a_star(hfunc):
                         continue
 
                 for v in u.neighbours(hfunc):
+                        if v in path_u:
+                                continue
+
+                        new_path = copy.deepcopy(path_u)
+                        new_path.append(v)
+                        heapq.heappush(q, (get_f(new_path), new_path))
+
+        return "0"
+
+@stopit.threading_timeoutable(default="1")
+def a_star_optimized(hfunc):
+        global sols_found
+        global max_nodes_in_mem
+
+        src  = Node(src_data, 0, hfunc)
+        dest = Node(dest_data, -1)
+
+        q = []
+        closed = []
+        heapq.heappush(q, (get_f([src]), [src]))
+
+        while len(q) > 0:
+                max_nodes_in_mem = max(max_nodes_in_mem, len(q))
+
+                _, path_u = heapq.heappop(q)
+                u = path_u[len(path_u) - 1]
+
+                if u == dest:
+                        sols_found = 1
+                        print_path(path_u, "[ PATH ]")
+                        return
+
+                closed.append(u)
+
+                neighbours = u.neighbours(hfunc)
+                for v in neighbours:
+                        found = False
+
+                        for el in q:
+                                _, path_q_node = el[0], el[1]
+                                q_node = path_q_node[len(path_q_node) - 1]
+
+                                if v == q_node:
+                                        found = True
+
+                                        if v.f >= q_node.f:
+                                                neighbours.remove(v)
+                                        else:
+                                                q.remove(el)
+                                                heapq.heapify(q)
+
+                                        break
+                        if not found:
+                                for closed_node in closed:
+                                        if v == closed_node:
+                                                if v.f >= closed_node.f:
+                                                        neighbours.remove(v)
+                                                else:
+                                                        closed.remove(closed_node)
+
+                                                break
+
+                for v in neighbours:
                         if v in path_u:
                                 continue
 
@@ -576,8 +639,9 @@ def main(argv):
         ]
 
         methods_informed = [
-            ("ida_star", ida_star),
-            ("a_star",   a_star)
+            ("ida_star",         ida_star),
+            ("a_star",           a_star),
+            ("a_star_optimized", a_star_optimized)
         ]
 
         heuristics = [
